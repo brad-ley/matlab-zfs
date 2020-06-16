@@ -7,16 +7,24 @@ format long
 tic
 
 % Debugging: Brad_Gd_Pake(1, 6, 4, 1000, 500, 1.6, 10, 30, 8608.16, 2048, 240)
-PLOT = 1;
+PLOT = 0;
+if ismac == 1
+    CLUSTER = 0;
+elseif ismac==0 && isunix==1
+    CLUSTER = 1;
+    PLOT = 0;
+else
+    fprintf("Not written for this OS")
+end
 
 %%% Define defaults %%%
 r_start = 1; %nm
 r_end = 6; %nm
-r_length = 200;
+r_length = 100; %200
 D_central = 1000; %MHz
 D_std = 500; %MHz
 Pp_Pm = 1.6;
-nMesh = 100; %MHz
+nMesh = 25; %100
 T = 30; %K
 B0 = 8608.16; %mT
 nPoints = 2048;
@@ -96,11 +104,14 @@ end
 c = parcluster;
 poolobj = parpool(c);
 maxNumCompThreads(12);
-addAttachedFiles(poolobj,...
-                {'/Users/Brad/Documents/MATLAB/easyspin-5.2.28/easyspin'})
-% addAttachedFiles(poolobj,...
-%                 {'/home/bdprice/matlab/easyspin'}) % for cluster run DONT
+if CLUSTER==0
+    addAttachedFiles(poolobj,...
+            {'/Users/Brad/Documents/MATLAB/easyspin-5.2.28/easyspin'})
+elseif CLUSTER==1
+    addAttachedFiles(poolobj,...
+                {'/home/bdprice/matlab/easyspin'}) % for cluster run DONT
 %                 FORGET TO ALSO TAKE OFF PLOTTING
+end
 
 if D_central > 0
     if PLOT == 1
@@ -133,6 +144,7 @@ if D_central > 0
             end
             data = data + out*PoD(dd)*PoE(ee); % weight based on probability
         end
+        fprintf('%.2f%% done\n', double(dd)/double(length(D_vals))*100)
     end
 else
     parfor ii = 1:length(distance_range)
@@ -153,7 +165,7 @@ end
 
 delete(poolobj)
 
-savename = ['Pake (Raitsimring); D,stdev='...
+savename = ['data/Pake (Raitsimring); D,stdev='...
     num2str(D_central) ',' num2str(D_std) '.txt'];
 
 ii = 1;
