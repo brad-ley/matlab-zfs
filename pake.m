@@ -8,38 +8,47 @@ hbar = 1.05457148e-34; % m2 kg / s
 
 g1 = 1.992;
 g2 = 2.0023;
-sweepmid = 8.608e3;
-sweepsize = 12;
-coupling = mu0*mu_B^2*g^2 / (4*pi*hbar*(2e-9)^3) / 1e6*[1/2, 1/2, -1];
+sweepmid = 8.6081597e3;
+sweepsize = 6;
+coupling = mu0*mu_B^2*g^2 / (4*pi*hbar*(3e-9)^3) / 1e6*[1/2, 1/2, -1];
 temp = 30;
-D = 1000;
-E = 250;
+D = 714;
+E = D/4; % most probable
 ZFS = [-1,-1,2]/3*D + [1,-1,0]*E;
-linewidth = [0.1 0.25];
+linewidth = [0.05 0.1];
 
-Sys1 = struct('g',[g1, g2],'lwpp',linewidth,'S',[1/2, 7/2],'eeD',coupling,'D',[0,0,0; ZFS]);
-Exp1 = struct('CenterSweep',[sweepmid sweepsize],'mwFreq',240,'nPoints',8192,...
-    'Harmonic',0,'Temperature',temp);
+Sys1 = struct('g',[g1, g2],'lwpp',linewidth,'S',[1/2, 7/2],'eeD',[0 0 0],'D',[0,0,0; ZFS]);
+Exp1 = struct('CenterSweep',[sweepmid sweepsize],'mwFreq',240,'nPoints',2048,...
+    'Harmonic',1,'Temperature',temp);
 
 [B1,spec1] = pepper(Sys1,Exp1);
 
 Sys2 = struct('g',[g1, g2],'lwpp',linewidth,'S',[1/2, 7/2],'eeD',coupling,'D',[0,0,0; ZFS]);
-Exp2 = struct('CenterSweep',[sweepmid sweepsize],'mwFreq',240,'nPoints',8192,...
+Exp2 = struct('CenterSweep',[sweepmid sweepsize],'mwFreq',240,'nPoints',2048,...
     'Harmonic',1,'Temperature',temp);
 
 [B2,spec2] = pepper(Sys2,Exp2);
 
 Sys3 = struct('g',[g1, g2],'S',[1/2, 7/2],'eeD',coupling,'D',[0,0,0; ZFS]);
-Exp3 = struct('CenterSweep',[sweepmid sweepsize],'mwFreq',240,'nPoints',8192,...
+Exp3 = struct('CenterSweep',[sweepmid sweepsize],'mwFreq',240,'nPoints',2048,...
     'Harmonic',0,'Temperature',temp);
 
 [B3,unbroadened] = pepper(Sys3,Exp3);
+
+w = conv(unbroadened,spec1,'same');
 
 figure
 plot(linspace(-sweepsize/2,sweepsize/2,length(spec1)),spec1/max(spec1))
 hold on
 plot(linspace(-sweepsize/2,sweepsize/2,length(spec1)),spec2/max(spec2))
-legend('Spec 1', 'Spec 2')
+hold on
+plot(linspace(-sweepsize/2,sweepsize/2,length(spec1)),unbroadened/max(unbroadened))
+hold on
+plot(linspace(-sweepsize/2,sweepsize/2,length(spec1)),w/max(w))
+legend('Uncoupled', 'Coupled', 'Pake', 'Convolved')
+
+writematrix(spec1,'uncoupled.txt')
+writematrix(spec2,'coupled.txt')
 
 figure
 plot(linspace(-sweepsize/2,sweepsize/2,length(spec1)),unbroadened/max(unbroadened))
