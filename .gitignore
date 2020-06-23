@@ -1,7 +1,9 @@
 .DS_Store
 
 # Ignore data files
-'Pake*.txt'
+Pake*.txt
+*.txt
+/data/*
 
 # Windows default autosave extension
 *.asv
