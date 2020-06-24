@@ -4,6 +4,7 @@
 Pake*.txt
 *.txt
 /data/*
+test*
 
 # Windows default autosave extension
 *.asv
